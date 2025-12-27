@@ -8,6 +8,7 @@ READ.db
 # Generated Folders (Avoid cluttering the repo with local files)
 plots/
 reports/
+excel/
 
 # Virtual Environments
 venv/

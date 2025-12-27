@@ -16,7 +16,7 @@ FORM_FIELDS = [
     ("Genre", "genre"),
     ("Note", "note")
 ]
-
+ 
 BG_COLOR, HEADER_COLOR = "#f0f2f5", "#2c3e50"
 BUTTON_COLOR, BUTTON_HOVER_COLOR = "#16A085", "#1ABC9C"
 
