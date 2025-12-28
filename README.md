@@ -11,7 +11,7 @@
 - 匯出為 CSV 檔案以進行備份
 
 ### 使用python套件
-- **圖形介面**: Tkinter
+- **UI介面**: Tkinter
 - **資料庫**: SQLite3
 - **視覺化**: Matplotlib、Seaborn
 - **報告**: FPDF、Pandas
