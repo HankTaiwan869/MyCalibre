@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 import database
 import report
 
-# Constants
+# Home window dimensions
 WINDOW_WIDTH, WINDOW_HEIGHT, PADDING = 1000, 750, 30
 
 FORM_FIELDS = [
@@ -92,11 +92,15 @@ class BookApp:
             messagebox.showwarning("Required Fields", "Please enter at least a Title and an Author.")
             return
         # Check year
-        if not data[2].isdigit() or int(data[2]) < 2000:
+        if not data[2]: # Empty year will be set to current year in database.py
+            pass
+        elif not data[2].isdigit() or int(data[2]) < 2000:
             messagebox.showwarning("Invalid Year", "Year should be after 2000.")
             return
         # Check month
-        if not data[3].isdigit() or int(data[3]) < 1 or int(data[3]) > 12:
+        if not data[3]: # Empty month will be set to current month in database.py
+            pass
+        elif not data[3].isdigit() or int(data[3]) < 1 or int(data[3]) > 12:
             messagebox.showwarning("Invalid Month", "Month should be between 1 and 12.")
             return
         
@@ -182,7 +186,6 @@ class BookApp:
 
     def _create_action_buttons(self, parent):
         ttk.Label(parent, text="", style="Header.TLabel").pack(pady=(0, 0))
-        
         for text, cmd in [
             ("SAVE", self.submit_book), 
             ("SEARCH", self.search_books),
@@ -214,13 +217,8 @@ class BookApp:
                     col_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
                     ttk.Label(col_frame, text=label_text).pack(anchor="w", pady=(0, 2))
                     
-                    widget = ttk.Combobox(col_frame, font=FONTS["entry"], state="readonly") if key in ["lang","orig","genre"] else ttk.Entry(col_frame, font=FONTS["entry"])
-                    if key == "genre":
-                        widget["values"] = GENRES
-                    elif key in ["lang","orig"]:
-                        widget["values"] = LANGUAGES
-                    else:
-                        self._bind_arrows(widget)
+                    widget = ttk.Entry(col_frame, font=FONTS["entry"])
+                    self._bind_arrows(widget)
                     widget.pack(fill="x", ipady=5)
                     self.entries[key] = widget
                     self.entry_list.append(widget)
@@ -261,22 +259,30 @@ class BookApp:
         style.map("Action.TButton", background=[('active', BUTTON_HOVER_COLOR)])
 
     def _display_books_window(self, books):
+        # View window dimensions
+        VIEW_WINDOW_WIDTH, VIEW_WINDOW_HEIGHT = 1200, 600
+        # View window fonts
+        VIEW_WINDOW_FONTS = {
+            "content": ("Segoe UI", 12),
+            "header": ("Segoe UI", 11, "bold")
+        }
+
         view_window = tk.Toplevel(self.root)
         view_window.title("Book Database")
-        view_window.geometry("1200x600")
+        view_window.geometry(f"{VIEW_WINDOW_WIDTH}x{VIEW_WINDOW_HEIGHT}")
         view_window.configure(bg=BG_COLOR)
 
         ttk.Label(view_window, text=f"Total Books: {len(books)}", style="Header.TLabel").pack(pady=10)
-
         tree_frame = ttk.Frame(view_window)
         tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
+        # Shows desired columns
         columns = ("title", "author", "time", "language", "genre", "rating")
         tree = ttk.Treeview(tree_frame, columns=columns, height=20, show="headings")
         
         style = ttk.Style()
-        style.configure("Treeview", font=("Segoe UI", 12))
-        style.configure("Treeview.Heading", font=("Segoe UI", 11, "bold"))
+        style.configure("Treeview", font=VIEW_WINDOW_FONTS["content"])
+        style.configure("Treeview.Heading", font=VIEW_WINDOW_FONTS["header"])
 
         for col, heading in {"title": "Title", "author": "Author", "time": "Time", "language": "Language", "genre": "Genre", "rating": "Rating"}.items():
             tree.heading(col, text=heading)

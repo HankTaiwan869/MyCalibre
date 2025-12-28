@@ -39,7 +39,7 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title_id INT,
                 translator TEXT NOT NULL,
-                FOREIGN KEY (title_id) REFERENCES books(id)
+                FOREIGN KEY (title_id) REFERENCES books(id) ON DELETE CASCADE
             )
         ''')
 
@@ -113,6 +113,7 @@ def search_books(book_data):
 
 def delete_last_entry():
     with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("PRAGMA foreign_keys = ON")
         cursor = conn.cursor()
 
         cursor.execute("""
