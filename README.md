@@ -13,7 +13,7 @@
 ### 使用python套件
 - **圖形介面**: Tkinter
 - **資料庫**: SQLite3
-- **視覺化**: Matplotlib、Seaborn
+- **視覺化**: Matplotlib、Seaborn, Pandas
 - **報告**: FPDF、Pandas
 
 ### 截圖
@@ -32,10 +32,12 @@ python main.py
 ```
 
 ### 專案結構
-- `main.py` - 程式入口
-- `gui.py` - Tkinter 介面
-- `database.py` - SQLite 操作
-- `report.py` - PDF 生成與繪圖
+- `main.py` - 程式進入點
+- `gui.py` - Tkinter 使用者介面
+- `database.py` - SQLite 資料庫操作
+- `validation.py` - 輸入驗證與資料檢查
+- `plot.py` - 資料視覺化與圖表生成
+- `report.py` - PDF 報表生成
 
 **備註**：此應用程式是為我的閱讀習慣量身打造（特定類型、評分系統等）。歡迎 fork 並根據您自己的需求進行調整！
 
@@ -54,7 +56,7 @@ A personal reading tracker I built to log and analyze my reading history with vi
 ### Python Packages Used
 - **GUI**: Tkinter
 - **Database**: SQLite3
-- **Visualization**: Matplotlib, Seaborn
+- **Visualization**: Matplotlib, Seaborn, Pandas
 - **Reports**: FPDF, Pandas
 
 ### Screenshots
@@ -77,7 +79,9 @@ python main.py
 - `main.py` - Entry point
 - `gui.py` - Tkinter interface
 - `database.py` - SQLite operations
-- `report.py` - PDF generation and plotting
+- `validation.py` - Input validation and data verification
+- `plot.py` - Data visualization and chart generation
+- `report.py` - PDF generation
 
 **Note**: This app is personalized for my reading habits (specific genres, rating system, etc.). Feel free to fork and adapt for your own use!
 
