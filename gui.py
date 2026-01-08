@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import database
 import report
+import validation
 
 # Home window dimensions
 WINDOW_WIDTH, WINDOW_HEIGHT, PADDING = 1000, 750, 30
@@ -14,7 +15,7 @@ FORM_FIELDS = [
     ("Original Language", "orig"),
     ("Translator(s) [split by /]", "trans"), 
     ("Genre", "genre"),
-    ("Note", "note")
+    ("Note (e.g. Audiobook)", "note")
 ]
  
 BG_COLOR, HEADER_COLOR = "#f0f2f5", "#2c3e50"
@@ -32,7 +33,8 @@ GENRES = [
     'Economics', 'Fiction', 'Finance', 'History', 'Linguistics', 
     'Marketing', 'Mathematics', 'Memoir', 'News Magazine', 
     'Philosophy', 'Psychology', 'Science', 'Self-Help', 
-    'Short Story', 'Sociology', 'Soft Skill', 'Travel', 'Urban Design'
+    'Short Story', 'Sociology', 'Soft Skill', 'Travel', 'Urban Design',
+    'Others'
 ]
 
 LANGUAGES = [
@@ -45,7 +47,7 @@ RATINGS = [
     ("Like", "#3498DB"),      # Blue
     ("Fine", "#95A5A6"),      # Gray
     ("Meh", "#2C3E50"),       # Dark blue-black
-    ("Career", "#C77DFF")     # Purple (unchanged)
+    ("Textbook", "#C77DFF")     # Purple
 ]
 
 class BookApp:
@@ -80,32 +82,31 @@ class BookApp:
         self._create_action_buttons(right_frame)
 
     def submit_book(self):
+        # Data collection with 10 items
         data = tuple(
             self.entries[key].get().strip() 
             for item in FORM_FIELDS 
             for _, key in (item if isinstance(item, list) else [item])
-        )
+        ) + (self.rating_var.get(),)
 
         # Input validation
-        # Check title and author
-        if not data[0] or not data[1]:
-            messagebox.showwarning("Required Fields", "Please enter at least a Title and an Author.")
-            return
+        # Check all required fields
+        for i in [0,1,4,5,7,9]:
+            if validation.is_empty(data[i]):
+                messagebox.showwarning("Incomplete Input", "Please fill in all required fields.")
+                return
+            
         # Check year
-        if not data[2]: # Empty year will be set to current year in database.py
-            pass
-        elif not data[2].isdigit() or int(data[2]) < 2000:
+        if not validation.check_year(data[2]): # Empty year will be set to current year in database.py
             messagebox.showwarning("Invalid Year", "Year should be after 2000.")
             return
         # Check month
-        if not data[3]: # Empty month will be set to current month in database.py
-            pass
-        elif not data[3].isdigit() or int(data[3]) < 1 or int(data[3]) > 12:
+        if not validation.check_month(data[3]): # Empty month will be set to current month in database.py
             messagebox.showwarning("Invalid Month", "Month should be between 1 and 12.")
             return
         
         try:
-            database.save_book(data + (self.rating_var.get(),))
+            database.save_book(data)
             messagebox.showinfo("Success", f"'{data[0]}' saved successfully!")
             self.clear_entries()
             self.rating_var.set("")
@@ -123,18 +124,15 @@ class BookApp:
             self.entries[key].get().strip() 
             for item in FORM_FIELDS 
             for _, key in (item if isinstance(item, list) else [item])
-        )
+        ) + (self.rating_var.get(),)
 
         # Check if at least one box is filled
-        if all(entry.get().strip() == "" for entry in self.entries.values()) and self.rating_var.get() == "":
+        if all(validation.is_empty(data[i]) for i in range(10)):
             messagebox.showwarning("Empty Form", "Please fill in at least a box to search.")
-            return
-        elif self.entries["trans"].get().strip() != "":
-            messagebox.showwarning("Unsupported Field", "Search function does not support translators.")
             return
         
         try:
-            self._display_books_window(database.search_books(data + (self.rating_var.get(),)))
+            self._display_books_window(database.search_books(data), show_translators = not validation.is_empty(data[6]))
             self.clear_entries()
             self.rating_var.set("")
         except Exception as e:
@@ -177,13 +175,6 @@ class BookApp:
         except Exception as e:
             messagebox.showerror("Database Error", f"Could not export table: {e}")
 
-    def random_books(self):
-        try:
-            self._display_books_window(database.get_books(type = "random"))
-        except Exception as e:
-            messagebox.showerror("Database Error", f"Could not fetch data: {e}")
-        return
-
     def _create_action_buttons(self, parent):
         ttk.Label(parent, text="", style="Header.TLabel").pack(pady=(0, 0))
         for text, cmd in [
@@ -192,8 +183,7 @@ class BookApp:
             ("DELETE LAST ENTRY", self.delete_last_entry),
             ("VIEW ALL", self.view_database), 
             ("GENERATE REPORT", self.generate_report),
-            ("EXPORT AS CSV", self.export_as_csv),
-            ("SURPRISE ME", self.random_books),
+            ("EXPORT AS CSV", self.export_as_csv)
         ]:
             btn = ttk.Button(parent, text=text, command=cmd, style="Action.TButton", width=20)
             btn.pack(fill="x", ipady=10, pady=5)
@@ -258,7 +248,7 @@ class BookApp:
         style.configure("Action.TButton", font=FONTS["button"], foreground="white", background=BUTTON_COLOR)
         style.map("Action.TButton", background=[('active', BUTTON_HOVER_COLOR)])
 
-    def _display_books_window(self, books):
+    def _display_books_window(self, books, show_translators = False):
         # View window dimensions
         VIEW_WINDOW_WIDTH, VIEW_WINDOW_HEIGHT = 1200, 600
         # View window fonts
@@ -266,6 +256,8 @@ class BookApp:
             "content": ("Segoe UI", 12),
             "header": ("Segoe UI", 11, "bold")
         }
+        if show_translators:
+            VIEW_WINDOW_WIDTH += 100
 
         view_window = tk.Toplevel(self.root)
         view_window.title("Book Database")
@@ -277,14 +269,19 @@ class BookApp:
         tree_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Shows desired columns
-        columns = ("title", "author", "time", "language", "genre", "rating")
+        if show_translators:
+            columns = ("title", "author", "translator", "time", "language", "genre", "rating")
+            headings = {"title": "Title", "author": "Author", "translator": "Translator", "time": "Time", "language": "Language", "genre": "Genre", "rating": "Rating"}
+        else:
+            columns = ("title", "author", "time", "language", "genre", "rating")
+            headings = {"title": "Title", "author": "Author", "time": "Time", "language": "Language", "genre": "Genre", "rating": "Rating"}
         tree = ttk.Treeview(tree_frame, columns=columns, height=20, show="headings")
         
         style = ttk.Style()
         style.configure("Treeview", font=VIEW_WINDOW_FONTS["content"])
         style.configure("Treeview.Heading", font=VIEW_WINDOW_FONTS["header"])
 
-        for col, heading in {"title": "Title", "author": "Author", "time": "Time", "language": "Language", "genre": "Genre", "rating": "Rating"}.items():
+        for col, heading in headings.items():
             tree.heading(col, text=heading)
             tree.column(col, width=120)
 

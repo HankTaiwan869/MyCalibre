@@ -3,6 +3,7 @@ import os
 import sys
 import csv
 from datetime import datetime
+import validation
 
 
 def get_base_dir():
@@ -42,6 +43,8 @@ def init_db():
                 FOREIGN KEY (title_id) REFERENCES books(id) ON DELETE CASCADE
             )
         ''')
+
+
 
 def save_book(book_data):
     """Expects a tuple of 10 strings: (title, author, year, month, lang, orig_lang, trans, genre, note, rating)"""
@@ -83,7 +86,7 @@ def search_books(book_data):
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         # Translator input is not suppported
-        title, author, year, month, lang, orig_lang, _, genre, note, rating = book_data
+        title, author, year, month, lang, orig_lang, trans, genre, note, rating = book_data
 
         # Convert year and month to wild card search friendly format
         if year and month:
@@ -95,18 +98,35 @@ def search_books(book_data):
         else:
             date_str = ""
 
-        cursor.execute('''
-            SELECT title, author, time, language, genre, rating FROM books
-            WHERE title LIKE ?
-            AND author LIKE ?
-            AND time LIKE ?
-            AND language LIKE ?
-            AND original_language LIKE ?
-            AND genre LIKE ?           
-            AND note LIKE ?
-            AND rating LIKE ?
-            ORDER BY time DESC, title ASC
-        ''', (f"%{title}%", f"%{author}%", f"%{date_str}%", f"%{lang}%", f"%{orig_lang}%", f"%{genre}%", f"%{note}%", f"%{rating}%"))
+        if validation.is_empty(trans):
+            cursor.execute('''
+                SELECT title, author, time, language, genre, rating FROM books
+                WHERE title LIKE ?
+                AND author LIKE ?
+                AND time LIKE ?
+                AND language LIKE ?
+                AND original_language LIKE ?
+                AND genre LIKE ?           
+                AND note LIKE ?
+                AND rating LIKE ?
+                ORDER BY time ASC, title ASC
+            ''', (f"%{title}%", f"%{author}%", f"%{date_str}%", f"%{lang}%", f"%{orig_lang}%", f"%{genre}%", f"%{note}%", f"%{rating}%"))
+        else:
+            cursor.execute('''
+                SELECT b.title, b.author, t.translator, b.time, b.language, b.genre, b.rating
+                FROM books b
+                JOIN translated t ON b.id = t.title_id
+                WHERE b.title LIKE ?
+                AND b.author LIKE ?
+                AND b.time LIKE ?
+                AND b.language LIKE ?
+                AND b.original_language LIKE ?
+                AND t.translator LIKE ?
+                AND b.genre LIKE ?           
+                AND b.note LIKE ?
+                AND b.rating LIKE ?
+                ORDER BY b.time ASC, b.title ASC
+            ''',  (f"%{title}%", f"%{author}%", f"%{date_str}%", f"%{lang}%", f"%{orig_lang}%", f"%{trans}%", f"%{genre}%", f"%{note}%", f"%{rating}%"))
 
         books = cursor.fetchall() 
     return books
@@ -155,15 +175,6 @@ def get_books(type = "all"):
                 FROM books
                 ORDER BY time DESC, title ASC
             """)
-        elif type == "random":
-            cursor.execute("""
-                SELECT title, author, time, language, genre, rating
-                FROM books
-                ORDER BY RANDOM() 
-                LIMIT 5
-            """)        
-        
+
         books = cursor.fetchall() 
     return books
-
-
