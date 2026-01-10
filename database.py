@@ -16,7 +16,7 @@ def get_base_dir():
         return os.path.dirname(os.path.abspath(__file__))
 
 BASE_DIR = get_base_dir()
-DB_PATH = os.path.join(BASE_DIR, "READ.db")
+DB_PATH = os.path.join(BASE_DIR, "MEDIA.db")
 
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
@@ -41,6 +41,15 @@ def init_db():
                 title_id INT,
                 translator TEXT NOT NULL,
                 FOREIGN KEY (title_id) REFERENCES books(id) ON DELETE CASCADE
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS shows (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                time TEXT NOT NULL,
+                type TEXT NOT NULL,
+                note TEXT
             )
         ''')
 
@@ -80,6 +89,31 @@ def save_book(book_data):
                     INSERT INTO translated (title_id, translator)
                     VALUES (?, ?)
                 ''', (book_id, tran))
+
+def save_show(show_data):
+    """Expects a tuple of 6 strings: (title, season, year, month, type, note)"""
+    title, season, year, month, type, note = show_data
+
+    # Convert year and month to YYYY-MM format
+    if year and month:
+        date_str = f"{year}-{month.zfill(2)}"  # zfill(2) pads single digits with 0
+    elif year:
+        date_str = f"{year}-00"
+    else:
+        year = str(datetime.now().year)
+        month = str(datetime.now().month)
+        date_str = f"{year}-{month.zfill(2)}"
+
+    # Handle season if provided
+    if not validation.is_empty(season):
+        title = f"{title} - Season {season.strip()}"
+
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO shows (title, time, type, note)
+            VALUES (?, ?, ?, ?)
+        ''', (title, date_str, type, note))
                 
 def search_books(book_data):
     """Expects a tuple of 10 strings: (title, author, year, month, lang, orig_lang, trans, genre, note, rating)"""
@@ -131,16 +165,61 @@ def search_books(book_data):
         books = cursor.fetchall() 
     return books
 
-def delete_last_entry():
+def search_shows(show_data):
+    """Expects a tuple of 6 strings: (title, season, year, month, type, note)"""
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        title, season, year, month, type, note = show_data
+
+        # Convert year and month to wild card search friendly format
+        if year and month:
+            date_str = f"{year}-{month.zfill(2)}"  # zfill(2) pads single digits with 0
+        elif year and not month:
+            date_str = str(year)
+        elif not year and month:
+            date_str = str(month)
+        else:
+            date_str = ""
+ 
+        if not validation.is_empty(season):
+            title = f"{title} - Season {season.strip()}"
+            cursor.execute('''
+                SELECT title, time, type FROM shows
+                WHERE title LIKE ?
+                AND time LIKE ?
+                AND type LIKE ?           
+                AND note LIKE ?
+                ORDER BY time ASC, title ASC
+            ''', (f"%{title}%", f"%{date_str}%", f"%{type}%", f"%{note}%"))
+        else:
+            cursor.execute('''
+                SELECT title, time, type FROM shows
+                WHERE title LIKE ?
+                AND time LIKE ?
+                AND type LIKE ?           
+                AND note LIKE ?
+                ORDER BY time ASC, title ASC
+            ''', (f"%{title}%", f"%{date_str}%", f"%{type}%", f"%{note}%"))
+
+        shows = cursor.fetchall() 
+    return shows
+
+def delete_last_entry(table):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute("PRAGMA foreign_keys = ON")
         cursor = conn.cursor()
-
-        cursor.execute("""
-            DELETE FROM books
-            WHERE id = (
-                SELECT id FROM books ORDER BY id DESC LIMIT 1)
-        """)
+        if table == "books":
+            cursor.execute("""
+                DELETE FROM books
+                WHERE id = (
+                    SELECT id FROM books ORDER BY id DESC LIMIT 1)
+            """)
+        elif table == "shows":
+            cursor.execute("""
+                DELETE FROM shows
+                WHERE id = (
+                    SELECT id FROM shows ORDER BY id DESC LIMIT 1)
+            """)
     return
 
 def export_as_csv(output_file = "READ.csv"):
@@ -178,3 +257,15 @@ def get_books(type = "all"):
 
         books = cursor.fetchall() 
     return books
+
+def get_shows():
+    """Retrieve all shows from the database."""
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT title, time, type 
+            FROM shows 
+            ORDER BY time, title
+        """)
+        shows = cursor.fetchall() 
+    return shows

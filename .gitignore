@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 
 # Database (Keep your personal reading data private)
-READ.db
+MEDIA.db
 
 # Generated Folders (Avoid cluttering the repo with local files)
 plots/

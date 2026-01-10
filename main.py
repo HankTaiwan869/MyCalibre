@@ -1,5 +1,5 @@
 import tkinter as tk
-from gui import BookApp
+from menu_gui import MyMediaMenu
 import database
 
 def main():
@@ -8,7 +8,7 @@ def main():
 
     # 2. Start the UI
     root = tk.Tk()
-    app = BookApp(root)
+    app = MyMediaMenu(root)
     root.mainloop()
 
 if __name__ == "__main__":
