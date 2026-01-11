@@ -3,7 +3,7 @@ import sys
 from fpdf import FPDF, XPos, YPos
 import pandas as pd
 from datetime import datetime
-import plot
+from reporting import plot
 
 # Set font to support Chinese characters
 import matplotlib
@@ -11,13 +11,13 @@ matplotlib.rc('font', family='Microsoft YaHei')
 
 START_YEAR = 2019
 
-# Prepare folders
 def get_base_dir():
-    """Get the directory where the app is running from"""
+    # Running as a bundled executable
     if getattr(sys, 'frozen', False):
         return os.path.dirname(sys.executable)
+    # Running as a script
     else:
-        return os.path.dirname(os.path.abspath(__file__))
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 BASE_DIR = get_base_dir()
 PLOTS_DIR = os.path.join(BASE_DIR, "plots")

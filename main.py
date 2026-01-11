@@ -1,6 +1,6 @@
 import tkinter as tk
-from menu_gui import MyMediaMenu
-import database
+from gui.menu_gui import MyMediaMenu
+from database import database
 
 def main():
     # 1. Initialize the database (create table if not exists)

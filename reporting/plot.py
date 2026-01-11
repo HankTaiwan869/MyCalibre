@@ -9,13 +9,13 @@ import matplotlib
 matplotlib.rc('font', family='Microsoft YaHei') 
 
 
-# Prepare folders
 def get_base_dir():
-    """Get the directory where the app is running from"""
+    # Running as a bundled executable
     if getattr(sys, 'frozen', False):
         return os.path.dirname(sys.executable)
+    # Running as a script
     else:
-        return os.path.dirname(os.path.abspath(__file__))
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 BASE_DIR = get_base_dir()
 PLOTS_DIR = os.path.join(BASE_DIR, "plots")

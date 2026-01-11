@@ -59,8 +59,8 @@ class MyMediaMenu:
         books_window = tk.Toplevel(self.root)
         
         # Import and initialize BookApp
-        from book_gui import BookApp  # Assuming your book GUI is in book_gui.py
-        BookApp(books_window)
+        from gui import book_gui  
+        book_gui.BookApp(books_window)
         
         # Show menu again when books window is closed
         books_window.protocol("WM_DELETE_WINDOW", lambda: self._on_close_child(books_window))
@@ -71,8 +71,8 @@ class MyMediaMenu:
         shows_window = tk.Toplevel(self.root)
         
         # Import and initialize ShowApp
-        from show_gui import ShowApp  # Assuming your show GUI is in show_gui.py
-        ShowApp(shows_window)
+        from gui import show_gui  
+        show_gui.ShowApp(shows_window)
         
         # Show menu again when shows window is closed
         shows_window.protocol("WM_DELETE_WINDOW", lambda: self._on_close_child(shows_window))

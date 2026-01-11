@@ -3,17 +3,16 @@ import os
 import sys
 import csv
 from datetime import datetime
-import validation
+from utils import validation
 
 
 def get_base_dir():
-    """Get the directory where the app is running from"""
+    # Running as a bundled executable
     if getattr(sys, 'frozen', False):
-        # Running as compiled exe
         return os.path.dirname(sys.executable)
+    # Running as a script
     else:
-        # Running as script
-        return os.path.dirname(os.path.abspath(__file__))
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 BASE_DIR = get_base_dir()
 DB_PATH = os.path.join(BASE_DIR, "MEDIA.db")
