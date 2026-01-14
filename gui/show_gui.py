@@ -81,8 +81,6 @@ class ShowApp:
         # Check year
         if not validation.check_season(data[1], accept_empty=True): # Check season
             messagebox.showwarning("Invalid Season", "Season should be a positive integer.")
-            print(data[1])
-            print(f"falidation result: {validation.check_season(data[1], accept_empty=True)}")
             return
         if not validation.check_year(data[2], accept_empty=True): # Empty year will be set to current year in database.py
             messagebox.showwarning("Invalid Year", "Year should be an integer value.")

@@ -25,6 +25,14 @@
 - **視覺化**: Matplotlib、Seaborn、Pandas
 - **報告**: FPDF、Pandas
 
+### 我學到了什麼
+
+**技術能力提升**：
+- 資料庫設計：正規化(normalization)結構與foreign key的運用
+- 多視窗 GUI 開發：事件驅動(event-driven)程式設計 (tkinter)
+- 資料處理流程：SQLite → Pandas → Matplotlib/Seaborn → PDF
+- input validation與error handling機制
+
 ### 截圖
 
 #### 主選單
@@ -98,6 +106,14 @@ A personal reading and show tracker I built to log and analyze my reading histor
 - **Database**: SQLite3
 - **Visualization**: Matplotlib, Seaborn, Pandas
 - **Reports**: FPDF, Pandas
+
+### What I Learned
+
+**Technical Skills Developed**:
+- Database design with normalized schemas and foreign key relationships
+- Multi-window GUI development with event-driven programming (tkinter)
+- Data transformation pipelines (SQLite → Pandas → Matplotlib/Seaborn → PDF)
+- Input validation and error handling patterns
 
 ### Screenshots
 
